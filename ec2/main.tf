@@ -35,6 +35,15 @@ resource "aws_security_group" "ecommerce_sg" {
     description = "HTTP access"
   }
 
+  # HTTPS access
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "HTTPS access"
+  }
+
   # Outbound internet access
   egress {
     from_port   = 0
@@ -52,7 +61,7 @@ resource "aws_security_group" "ecommerce_sg" {
 
 # EC2 Instance
 resource "aws_instance" "ecommerce_instance" {
-  ami                    = "ami-04b4f1a9cf54c11d0"
+  ami                    = "ami-0d7de881073777ccd"  # Update to new AMI
   instance_type          = "t2.micro"
   vpc_security_group_ids = [aws_security_group.ecommerce_sg.id]
   key_name               = "midterm"

@@ -45,6 +45,15 @@ module "rds" {
   # db_password = "YourStrongPasswordHere"  # Use AWS Secrets Manager in production
 }
 
+# Add the loadbalancer module
+module "loadbalancer" {
+  source = "./loadbalancer"
+  
+  vpc_id                    = module.networking.ecommerce_vpc_id
+  public_subnet_ids         = module.networking.public_subnet_ids
+  instance_security_group_id = module.ec2.security_group_id
+}
+
 # Create the security group rules AFTER both modules are created
 resource "aws_security_group_rule" "ec2_to_rds" {
   type                     = "egress"
@@ -75,4 +84,9 @@ output "instance_public_ip" {
 
 output "website_url" {
   value = module.ec2.website_url
+}
+
+# Add loadbalancer outputs
+output "alb_dns_name" {
+  value = module.loadbalancer.alb_dns_name
 }
