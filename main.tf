@@ -41,17 +41,15 @@ module "rds" {
   vpc_id    = module.networking.ecommerce_vpc_id
   private_subnet_ids = module.networking.private_subnet_ids
   ec2_security_group_id = module.ec2.security_group_id
-  # db_username = "admin"
-  # db_password = "YourStrongPasswordHere"  # Use AWS Secrets Manager in production
 }
 
 # Add the loadbalancer module
 module "loadbalancer" {
-  source = "./loadbalancer"
-  
+  source                    = "./loadbalancer"
   vpc_id                    = module.networking.ecommerce_vpc_id
   public_subnet_ids         = module.networking.public_subnet_ids
   instance_security_group_id = module.ec2.security_group_id
+  instance_id               = module.ec2.instance_id
 }
 
 # Create the security group rules AFTER both modules are created

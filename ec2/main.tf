@@ -162,3 +162,8 @@ output "security_group_id" {
   value       = aws_security_group.ecommerce_sg.id
   description = "The ID of the EC2 security group"
 }
+
+output "instance_id" {
+  value       = aws_instance.ecommerce_instance.id
+  description = "The ID of the EC2 instance"
+}

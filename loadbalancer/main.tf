@@ -36,7 +36,7 @@ resource "aws_lb" "ecommerce_lb" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
-  subnets           = var.public_subnet_ids
+  subnets            = var.public_subnet_ids
 
   tags = {
     Name = "ecommerce-lb"
@@ -62,19 +62,34 @@ resource "aws_lb_target_group" "ecommerce_tg" {
   }
 }
 
-# Launch Template
+// Manually attach existing EC2 instance to the target group
+resource "aws_lb_target_group_attachment" "existing_instance" {
+  target_group_arn = aws_lb_target_group.ecommerce_tg.arn
+  target_id        = var.instance_id
+  port             = 80
+}
+
+// Create AMI from existing instance
+resource "aws_ami_from_instance" "ecommerce_ami" {
+  name               = "ecommerce-ami"
+  source_instance_id = var.instance_id
+
+  tags = {
+    Name = "ecommerce-ami"
+  }
+}
+
+# Launch Template using the AMI created from existing instance
 resource "aws_launch_template" "ecommerce_template" {
   name = "ecommerce-template"
 
-  image_id      = "ami-0d7de881073777ccd"
+  image_id      = aws_ami_from_instance.ecommerce_ami.id
   instance_type = "t2.micro"
 
   network_interfaces {
     associate_public_ip_address = true
-    security_groups            = [var.instance_security_group_id]
+    security_groups             = [var.instance_security_group_id]
   }
-
-  user_data = base64encode(file("${path.module}/user_data.sh"))
 
   tag_specifications {
     resource_type = "instance"
@@ -86,15 +101,15 @@ resource "aws_launch_template" "ecommerce_template" {
 
 # Auto Scaling Group
 resource "aws_autoscaling_group" "ecommerce_asg" {
-  name                = "ecommerce-asg"
-  desired_capacity    = 1
-  max_size            = 3
-  min_size            = 1
-  target_group_arns   = [aws_lb_target_group.ecommerce_tg.arn]
-  vpc_zone_identifier = var.public_subnet_ids
-  health_check_type   = "ELB"
+  name                      = "ecommerce-asg"
+  desired_capacity          = 1
+  max_size                  = 3
+  min_size                  = 1
+  target_group_arns         = [aws_lb_target_group.ecommerce_tg.arn]
+  vpc_zone_identifier       = var.public_subnet_ids
+  health_check_type         = "ELB"
   health_check_grace_period = 300
-
+  
   launch_template {
     id      = aws_launch_template.ecommerce_template.id
     version = "$Latest"
