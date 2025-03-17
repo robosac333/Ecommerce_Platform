@@ -73,6 +73,9 @@ resource "aws_instance" "ecommerce_instance" {
   # Update EC2 instance
   sudo apt update -y
 
+  # Install MySQL client
+  sudo apt install mysql-client -y
+
   # Install Apache2 Web Server
   sudo apt install apache2 -y
     
