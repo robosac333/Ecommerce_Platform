@@ -10,6 +10,32 @@ variable "ec2_security_group_id" {
     description = "ID of the EC2 security group"
     type        = string
 }
+variable "db_username" {
+    description = "Username for the database"
+    type        = string
+    default     = "admin"
+    sensitive   = true
+}
+variable "db_password" {
+    description = "Password for the database"
+    type        = string
+    sensitive   = true
+}
+variable "db_name" {
+    description = "Name of the database"
+    type        = string
+    default     = "ecommercedb"
+}
+variable "storage_encrypted" {
+    description = "Whether to encrypt the RDS storage"
+    type        = bool
+    default     = true
+}
+variable "kms_key_id" {
+    description = "KMS key ID for RDS encryption"
+    type        = string
+    default     = null
+}
 
 # ================================================================
 
@@ -53,14 +79,16 @@ resource "aws_db_instance" "ecommerce_db" {
   engine                = "mysql"
   engine_version        = "8.0"
   instance_class        = "db.t3.micro"
-  db_name              = "ecommercedb"
-  username             = "admin"
-  password             = "Password123"  # Change this to a secure password
+  db_name              = var.db_name
+  username             = var.db_username
+  password             = var.db_password
   parameter_group_name = "default.mysql8.0"
   db_subnet_group_name = aws_db_subnet_group.rds_subnet_group.name
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
   skip_final_snapshot  = true
   publicly_accessible  = false
+  storage_encrypted    = var.storage_encrypted
+  kms_key_id           = var.kms_key_id
 
   tags = {
     Name    = "ecommerce-db"

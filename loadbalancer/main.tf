@@ -9,6 +9,7 @@ resource "aws_security_group" "alb_sg" {
     to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow HTTP traffic from internet"
   }
 
   ingress {
@@ -16,6 +17,7 @@ resource "aws_security_group" "alb_sg" {
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow HTTPS traffic from internet"
   }
 
   egress {
@@ -23,12 +25,15 @@ resource "aws_security_group" "alb_sg" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all outbound traffic"
   }
 
   tags = {
     Name = "ecommerce-alb-sg"
+    Project = "ecommerce-app"
   }
 }
+
 
 # Application Load Balancer
 resource "aws_lb" "ecommerce_lb" {
@@ -95,6 +100,7 @@ resource "aws_launch_template" "ecommerce_template" {
     resource_type = "instance"
     tags = {
       Name = "ecommerce-asg-instance"
+      Project = "ecommerce-app"
     }
   }
 }
@@ -120,6 +126,37 @@ resource "aws_autoscaling_group" "ecommerce_asg" {
     value               = "ecommerce-asg-instance"
     propagate_at_launch = true
   }
+
+  # Enable metrics collection for the ASG
+  metrics_granularity = "1Minute"
+  enabled_metrics = [
+    "GroupMinSize",
+    "GroupMaxSize",
+    "GroupDesiredCapacity",
+    "GroupInServiceInstances",
+    "GroupPendingInstances",
+    "GroupStandbyInstances",
+    "GroupTerminatingInstances",
+    "GroupTotalInstances"
+  ]
+}
+
+# Scale Out Policy (Add instances)
+resource "aws_autoscaling_policy" "scale_out" {
+  name                   = "ecommerce-scale-out-policy"
+  scaling_adjustment     = 1
+  adjustment_type        = "ChangeInCapacity"
+  cooldown               = 300
+  autoscaling_group_name = aws_autoscaling_group.ecommerce_asg.name
+}
+
+# Scale In Policy (Remove instances)
+resource "aws_autoscaling_policy" "scale_in" {
+  name                   = "ecommerce-scale-in-policy"
+  scaling_adjustment     = -1
+  adjustment_type        = "ChangeInCapacity"
+  cooldown               = 300
+  autoscaling_group_name = aws_autoscaling_group.ecommerce_asg.name
 }
 
 # ALB Listener

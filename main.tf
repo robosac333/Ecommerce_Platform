@@ -7,9 +7,9 @@ terraform {
   }
 
   cloud {
-    organization = "Ecommerce_Deployment"
+    organization = "shantanu-gonade-org"
     workspaces {
-      name = "Ecommerce_Platform"
+      name = "ecommerce-workspace"
     }
   }
 }
@@ -41,6 +41,17 @@ module "rds" {
   vpc_id    = module.networking.ecommerce_vpc_id
   private_subnet_ids = module.networking.private_subnet_ids
   ec2_security_group_id = module.ec2.security_group_id
+
+  # Database configuration
+  # NOTE: In a production environment, these credentials should be stored in AWS Secrets Manager
+  # or AWS Parameter Store and retrieved at runtime, not in terraform.tfvars
+  db_username = var.db_username
+  db_password = var.db_password
+  db_name     = var.db_name
+
+  # Encryption configuration
+  storage_encrypted = true
+  kms_key_id        = var.kms_key_id
 }
 
 # Add the loadbalancer module
@@ -50,6 +61,40 @@ module "loadbalancer" {
   public_subnet_ids         = module.networking.public_subnet_ids
   instance_security_group_id = module.ec2.security_group_id
   instance_id               = module.ec2.instance_id
+}
+
+# Add the CloudWatch module for scaling alarms
+module "cloudwatch" {
+  source                  = "./cloudwatch"
+  prefix                  = "ecommerce"
+  aws_region              = "us-east-1"
+  autoscaling_group_name  = module.loadbalancer.autoscaling_group_name
+  scale_out_policy_arn    = module.loadbalancer.scale_out_policy_arn
+  scale_in_policy_arn     = module.loadbalancer.scale_in_policy_arn
+  load_balancer_arn_suffix = module.loadbalancer.load_balancer_arn_suffix
+
+  # Alarm thresholds
+  high_cpu_threshold      = 70
+  low_cpu_threshold       = 30
+  high_network_threshold  = 5000000
+  high_request_count_threshold = 1000
+  high_response_time_threshold = 1
+
+  # Evaluation settings
+  evaluation_periods      = 2
+  period                  = 300
+
+  # Enable/disable specific alarms
+  enable_network_alarms   = true
+  enable_request_count_alarm = true
+  enable_response_time_alarm = true
+
+  # Create a dashboard
+  create_dashboard        = true
+
+  tags = {
+    Project = "ecommerce-app"
+  }
 }
 
 # Create the security group rules AFTER both modules are created
@@ -87,4 +132,25 @@ output "website_url" {
 # Add loadbalancer outputs
 output "alb_dns_name" {
   value = module.loadbalancer.alb_dns_name
+}
+
+# Add CloudWatch outputs
+output "high_cpu_alarm_arn" {
+  value       = module.cloudwatch.high_cpu_alarm_arn
+  description = "ARN of the high CPU utilization alarm"
+}
+
+output "low_cpu_alarm_arn" {
+  value       = module.cloudwatch.low_cpu_alarm_arn
+  description = "ARN of the low CPU utilization alarm"
+}
+
+output "autoscaling_group_name" {
+  value       = module.loadbalancer.autoscaling_group_name
+  description = "Name of the Auto Scaling Group"
+}
+
+output "cloudwatch_dashboard_arn" {
+  value       = module.cloudwatch.dashboard_arn
+  description = "ARN of the CloudWatch dashboard"
 }
