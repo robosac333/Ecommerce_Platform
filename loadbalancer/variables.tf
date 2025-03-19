@@ -8,11 +8,6 @@ variable "public_subnet_ids" {
   type        = list(string)
 }
 
-variable "private_subnet_ids" {
-  description = "IDs of private subnets"
-  type        = list(string)
-}
-
 variable "instance_security_group_id" {
   description = "ID of the EC2 instance security group"
   type        = string

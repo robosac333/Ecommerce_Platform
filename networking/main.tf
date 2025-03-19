@@ -46,25 +46,6 @@ resource "aws_internet_gateway" "ecommerce_public_internet_gateway" {
   }
 }
 
-# Elastic IP for NAT Gateway
-resource "aws_eip" "nat_eip" {
-  domain   = "vpc"
-  depends_on = [aws_internet_gateway.ecommerce_public_internet_gateway]
-  tags = {
-    Name = "ecommerce-nat-eip"
-  }
-}
-
-# NAT Gateway
-resource "aws_nat_gateway" "nat_gateway" {
-  allocation_id = aws_eip.nat_eip.id
-  subnet_id     = aws_subnet.ecommerce_project_public_subnets[0].id
-  depends_on    = [aws_internet_gateway.ecommerce_public_internet_gateway]
-  tags = {
-    Name = "ecommerce-nat-gateway"
-  }
-}
-
 # Public Route Table
 resource "aws_route_table" "ecommerce_public_route_table" {
   vpc_id = aws_vpc.ecommerce_project_vpc_us_east_1.id
@@ -87,12 +68,7 @@ resource "aws_route_table_association" "ecommerce_public_rt_subnet_association" 
 # Private Route Table
 resource "aws_route_table" "ecommerce_private_route_table" {
   vpc_id = aws_vpc.ecommerce_project_vpc_us_east_1.id
-  depends_on = [aws_nat_gateway.nat_gateway]
-  
-  route {
-    cidr_block = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat_gateway.id
-  }
+#   depends_on = [aws_nat_gateway.nat_gateway]
   
   tags = {
     Name = "ecommerce-private-rt"

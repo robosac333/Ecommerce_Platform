@@ -34,16 +34,6 @@ resource "aws_security_group" "alb_sg" {
   }
 }
 
-# Security Group Rule to allow traffic from ALB to EC2 instances
-resource "aws_security_group_rule" "alb_to_instances" {
-  type                     = "ingress"
-  from_port                = 80
-  to_port                  = 80
-  protocol                 = "tcp"
-  source_security_group_id = aws_security_group.alb_sg.id
-  security_group_id        = var.instance_security_group_id
-  description              = "Allow HTTP traffic from ALB to instances"
-}
 
 # Application Load Balancer
 resource "aws_lb" "ecommerce_lb" {
@@ -102,7 +92,7 @@ resource "aws_launch_template" "ecommerce_template" {
   instance_type = "t2.micro"
 
   network_interfaces {
-    associate_public_ip_address = false
+    associate_public_ip_address = true
     security_groups             = [var.instance_security_group_id]
   }
 
@@ -113,18 +103,6 @@ resource "aws_launch_template" "ecommerce_template" {
       Project = "ecommerce-app"
     }
   }
-
-  # User data script to ensure the instance is properly configured
-  user_data = base64encode(<<-EOF
-    #!/bin/bash
-    set -e
-    # Update packages
-    apt update -y
-    # Make sure Apache is running
-    systemctl start apache2
-    systemctl enable apache2
-  EOF
-  )
 }
 
 # Auto Scaling Group
@@ -134,7 +112,7 @@ resource "aws_autoscaling_group" "ecommerce_asg" {
   max_size                  = 3
   min_size                  = 1
   target_group_arns         = [aws_lb_target_group.ecommerce_tg.arn]
-  vpc_zone_identifier       = var.private_subnet_ids
+  vpc_zone_identifier       = var.public_subnet_ids
   health_check_type         = "ELB"
   health_check_grace_period = 300
   
