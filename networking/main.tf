@@ -27,7 +27,7 @@ resource "aws_subnet" "ecommerce_project_public_subnets" {
 }
 
 # Setup private subnet
-resource "aws_subnet" "dev_proj_1_private_subnets" {
+resource "aws_subnet" "ecommerce_project_private_subnets" {
   count             = length(var.cidr_private_subnet)
   vpc_id            = aws_vpc.ecommerce_project_vpc_us_east_1.id
   cidr_block        = element(var.cidr_private_subnet, count.index)
@@ -39,53 +39,78 @@ resource "aws_subnet" "dev_proj_1_private_subnets" {
 }
 
 # Setup Internet Gateway
-resource "aws_internet_gateway" "dev_proj_1_public_internet_gateway" {
+resource "aws_internet_gateway" "ecommerce_public_internet_gateway" {
   vpc_id = aws_vpc.ecommerce_project_vpc_us_east_1.id
   tags = {
-    Name = "ecommerce-1-igw"
+    Name = "ecommerce-igw"
+  }
+}
+
+# Elastic IP for NAT Gateway
+resource "aws_eip" "nat_eip" {
+  domain   = "vpc"
+  depends_on = [aws_internet_gateway.ecommerce_public_internet_gateway]
+  tags = {
+    Name = "ecommerce-nat-eip"
+  }
+}
+
+# NAT Gateway
+resource "aws_nat_gateway" "nat_gateway" {
+  allocation_id = aws_eip.nat_eip.id
+  subnet_id     = aws_subnet.ecommerce_project_public_subnets[0].id
+  depends_on    = [aws_internet_gateway.ecommerce_public_internet_gateway]
+  tags = {
+    Name = "ecommerce-nat-gateway"
   }
 }
 
 # Public Route Table
-resource "aws_route_table" "dev_proj_1_public_route_table" {
+resource "aws_route_table" "ecommerce_public_route_table" {
   vpc_id = aws_vpc.ecommerce_project_vpc_us_east_1.id
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.dev_proj_1_public_internet_gateway.id
+    gateway_id = aws_internet_gateway.ecommerce_public_internet_gateway.id
   }
   tags = {
-    Name = "ecommerce-1-public-rt"
+    Name = "ecommerce-public-rt"
   }
 }
 
 # Public Route Table and Public Subnet Association
-resource "aws_route_table_association" "dev_proj_1_public_rt_subnet_association" {
+resource "aws_route_table_association" "ecommerce_public_rt_subnet_association" {
   count          = length(aws_subnet.ecommerce_project_public_subnets)
   subnet_id      = aws_subnet.ecommerce_project_public_subnets[count.index].id
-  route_table_id = aws_route_table.dev_proj_1_public_route_table.id
+  route_table_id = aws_route_table.ecommerce_public_route_table.id
 }
 
 # Private Route Table
-resource "aws_route_table" "dev_proj_1_private_subnets" {
+resource "aws_route_table" "ecommerce_private_route_table" {
   vpc_id = aws_vpc.ecommerce_project_vpc_us_east_1.id
-  #depends_on = [aws_nat_gateway.nat_gateway]
+  depends_on = [aws_nat_gateway.nat_gateway]
+  
+  route {
+    cidr_block = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.nat_gateway.id
+  }
+  
   tags = {
-    Name = "ecommerce-1-private-rt"
+    Name = "ecommerce-private-rt"
   }
 }
 
 # Private Route Table and private Subnet Association
-resource "aws_route_table_association" "dev_proj_1_private_rt_subnet_association" {
-  count          = length(aws_subnet.dev_proj_1_private_subnets)
-  subnet_id      = aws_subnet.dev_proj_1_private_subnets[count.index].id
-  route_table_id = aws_route_table.dev_proj_1_private_subnets.id
+resource "aws_route_table_association" "ecommerce_private_rt_subnet_association" {
+  count          = length(aws_subnet.ecommerce_project_private_subnets)
+  subnet_id      = aws_subnet.ecommerce_project_private_subnets[count.index].id
+  route_table_id = aws_route_table.ecommerce_private_route_table.id
 }
 
 # ================================================================
 
 # Get outputs from your networking setup
 output "private_subnet_ids" {
-  value = aws_subnet.dev_proj_1_private_subnets.*.id
+  value = aws_subnet.ecommerce_project_private_subnets.*.id
 }
 
 output "public_subnet_ids" {

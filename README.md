@@ -1,2 +1,71 @@
 # Ecommerce_Platform
-Hosting an Ecommerce platform with security protocol as a IaaC (Infrastrucure from Code) on Hashicorp Terraform.
+
+Hosting an Ecommerce platform with security protocol as a IaaC (Infrastructure as Code) on Hashicorp Terraform.
+
+## Architecture
+
+This project deploys a scalable ecommerce platform on AWS using Terraform with the following components:
+
+- **Networking**: VPC, public and private subnets, internet gateway, route tables
+- **EC2**: Web server instances with Apache and PHP
+- **RDS**: MySQL database for the ecommerce application
+- **Load Balancer**: Application Load Balancer for distributing traffic
+- **Auto Scaling**: Auto Scaling Group to handle varying loads
+- **CloudWatch**: Alarms to trigger scaling events based on metrics
+
+## Modules
+
+### Networking
+
+Sets up the VPC, subnets, internet gateway, and route tables.
+
+### EC2
+
+Deploys EC2 instances with the necessary software for the ecommerce application.
+
+### RDS
+
+Sets up a MySQL database for the ecommerce application.
+
+### Load Balancer
+
+Configures an Application Load Balancer and Auto Scaling Group.
+
+### CloudWatch
+
+Sets up CloudWatch alarms to trigger scaling events based on various metrics:
+
+- CPU utilization (high and low)
+- Network traffic (in and out)
+- Request count
+- Response time
+
+## Auto Scaling
+
+The platform automatically scales based on the following metrics:
+
+- High CPU utilization (> 70%) triggers scale out
+- Low CPU utilization (< 30%) triggers scale in
+- High network traffic triggers scale out
+- High request count triggers scale out
+- High response time triggers scale out
+
+A CloudWatch dashboard is also created to monitor these metrics.
+
+## Getting Started
+
+1. Clone this repository
+2. Update `terraform.tfvars` with your desired values
+3. Run `terraform init` to initialize the project
+4. Run `terraform plan` to see the changes that will be made
+5. Run `terraform apply` to deploy the infrastructure
+
+## Outputs
+
+- `instance_public_ip`: Public IP of the EC2 instance
+- `website_url`: URL to access the ecommerce website
+- `alb_dns_name`: DNS name of the Application Load Balancer
+- `high_cpu_alarm_arn`: ARN of the high CPU utilization alarm
+- `low_cpu_alarm_arn`: ARN of the low CPU utilization alarm
+- `autoscaling_group_name`: Name of the Auto Scaling Group
+- `cloudwatch_dashboard_arn`: ARN of the CloudWatch dashboard
