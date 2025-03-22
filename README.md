@@ -57,7 +57,8 @@ Configures AWS Web Application Firewall (WAF) to protect the application from co
 
 Implements secure data transmission using:
 
-- **HTTPS**: Self-signed SSL/TLS certificate via AWS Certificate Manager for HTTPS communication
+- **HTTPS**: AWS Certificate Manager (ACM) certificate with DNS validation for HTTPS communication
+- **Domain Integration**: Proper domain name configuration with Route 53
 - **HTTP to HTTPS Redirection**: Automatically redirects HTTP traffic to HTTPS
 - **RDS SSL**: Enforces SSL connections between the application and the MySQL database
 - **Parameter Group**: Custom DB parameter group with `require_secure_transport=ON`
@@ -99,3 +100,6 @@ A CloudWatch dashboard is also created to monitor these metrics.
 - `acm_certificate_arn`: ARN of the ACM certificate used for HTTPS
 - `rds_ssl_enabled`: Indicates that SSL is enabled for RDS connections
 - `rds_ca_cert_identifier`: The CA certificate identifier used for RDS SSL connections
+- `domain_name`: Domain name used for the website
+- `www_domain_name`: WWW subdomain used for the website
+- `route53_zone_id`: Route 53 hosted zone ID for the domain

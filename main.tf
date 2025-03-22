@@ -223,3 +223,19 @@ output "rds_ca_cert_identifier" {
   value       = module.rds.rds_ca_cert_identifier
   description = "The CA certificate identifier used for RDS SSL connections"
 }
+
+# Domain related outputs
+output "domain_name" {
+  value       = module.loadbalancer.domain_name
+  description = "Domain name used for the website"
+}
+
+output "www_domain_name" {
+  value       = module.loadbalancer.www_domain_name
+  description = "WWW subdomain used for the website"
+}
+
+output "route53_zone_id" {
+  value       = module.loadbalancer.route53_zone_id
+  description = "Route 53 hosted zone ID for the domain"
+}

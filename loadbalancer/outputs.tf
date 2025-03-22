@@ -39,6 +39,21 @@ output "https_listener_arn" {
 }
 
 output "acm_certificate_arn" {
-  value       = aws_acm_certificate.self_signed_cert.arn
+  value       = aws_acm_certificate.domain_cert.arn
   description = "ARN of the ACM certificate used for HTTPS"
+}
+
+output "domain_name" {
+  value       = var.domain_name
+  description = "Domain name used for the website"
+}
+
+output "www_domain_name" {
+  value       = "www.${var.domain_name}"
+  description = "WWW subdomain used for the website"
+}
+
+output "route53_zone_id" {
+  value       = data.aws_route53_zone.domain_zone.zone_id
+  description = "Route 53 hosted zone ID for the domain"
 }

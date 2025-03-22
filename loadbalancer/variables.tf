@@ -17,3 +17,9 @@ variable "instance_id" {
   description = "ID of the EC2 instance"
   type        = string
 }
+
+variable "domain_name" {
+  description = "Domain name for the ACM certificate"
+  type        = string
+  default     = "ecommerce-group5.com"
+}
