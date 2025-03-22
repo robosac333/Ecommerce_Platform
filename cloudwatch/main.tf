@@ -109,7 +109,7 @@ resource "aws_cloudwatch_dashboard" "main" {
   count          = var.create_dashboard ? 1 : 0
   dashboard_name = "${var.prefix}-dashboard"
   
-  dashboard_body = <<EOF
+  dashboard_body = <<EOF_WAF
 {
   "widgets": [
     {
@@ -176,8 +176,60 @@ resource "aws_cloudwatch_dashboard" "main" {
         "region": "${var.aws_region}",
         "title": "ALB Response Time"
       }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 12,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [ "AWS/WAFV2", "AllowedRequests", "WebACL", "${var.waf_web_acl_name}", "Region", "${var.aws_region}", { "label": "Allowed Requests" } ],
+          [ "AWS/WAFV2", "BlockedRequests", "WebACL", "${var.waf_web_acl_name}", "Region", "${var.aws_region}", { "label": "Blocked Requests" } ]
+        ],
+        "period": 300,
+        "stat": "Sum",
+        "region": "${var.aws_region}",
+        "title": "WAF Requests"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 12,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [ "AWS/WAFV2", "CountedRequests", "WebACL", "${var.waf_web_acl_name}", "Region", "${var.aws_region}", "Rule", "AWS-AWSManagedRulesSQLiRuleSet", { "label": "SQL Injection Attempts" } ],
+          [ "AWS/WAFV2", "CountedRequests", "WebACL", "${var.waf_web_acl_name}", "Region", "${var.aws_region}", "Rule", "AWS-AWSManagedRulesKnownBadInputsRuleSet", { "label": "XSS Attempts" } ]
+        ],
+        "period": 300,
+        "stat": "Sum",
+        "region": "${var.aws_region}",
+        "title": "WAF Attack Types"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 18,
+      "width": 24,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [ "AWS/WAFV2", "BlockedRequests", "WebACL", "${var.waf_web_acl_name}", "Region", "${var.aws_region}", "Rule", "ALL", { "label": "All Blocked Requests" } ],
+          [ "AWS/WAFV2", "BlockedRequests", "WebACL", "${var.waf_web_acl_name}", "Region", "${var.aws_region}", "Rule", "RateLimitRule", { "label": "Rate Limited Requests" } ],
+          [ "AWS/WAFV2", "BlockedRequests", "WebACL", "${var.waf_web_acl_name}", "Region", "${var.aws_region}", "Rule", "BlockBadBots", { "label": "Bad Bot Requests" } ]
+        ],
+        "period": 300,
+        "stat": "Sum",
+        "region": "${var.aws_region}",
+        "title": "WAF Blocked Requests by Rule"
+      }
     }
   ]
 }
-EOF
+EOF_WAF 
 }

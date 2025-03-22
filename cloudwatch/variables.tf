@@ -104,3 +104,15 @@ variable "tags" {
     Project = "ecommerce-app"
   }
 }
+
+variable "waf_web_acl_name" {
+  description = "Name of the WAF WebACL for CloudWatch metrics"
+  type        = string
+  default     = ""
+}
+
+variable "waf_enabled" {
+  description = "Whether WAF is enabled and should be included in the dashboard"
+  type        = bool
+  default     = false
+}

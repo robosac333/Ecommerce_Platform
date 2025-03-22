@@ -27,3 +27,8 @@ output "load_balancer_arn_suffix" {
   value       = aws_lb.ecommerce_lb.arn_suffix
   description = "ARN suffix of the load balancer"
 }
+
+output "alb_arn" {
+  value       = aws_lb.ecommerce_lb.arn
+  description = "ARN of the application load balancer"
+}
