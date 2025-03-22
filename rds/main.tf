@@ -72,7 +72,25 @@ resource "aws_security_group" "rds_sg" {
   }
 }
 
-# RDS Instance 
+# Create a DB parameter group for SSL configuration
+resource "aws_db_parameter_group" "mysql_ssl_params" {
+  name        = "ecommerce-mysql-ssl-params"
+  family      = "mysql8.0"
+  description = "MySQL parameter group with SSL enabled"
+
+  parameter {
+    name  = "require_secure_transport"
+    value = "ON"
+    apply_method = "pending-reboot"
+  }
+
+  tags = {
+    Name    = "ecommerce-mysql-ssl-params"
+    Project = "ecommerce-app"
+  }
+}
+
+# RDS Instance with SSL enabled
 resource "aws_db_instance" "ecommerce_db" {
   allocated_storage      = 20
   storage_type          = "gp2"
@@ -82,13 +100,16 @@ resource "aws_db_instance" "ecommerce_db" {
   db_name              = var.db_name
   username             = var.db_username
   password             = var.db_password
-  parameter_group_name = "default.mysql8.0"
+  parameter_group_name = aws_db_parameter_group.mysql_ssl_params.name
   db_subnet_group_name = aws_db_subnet_group.rds_subnet_group.name
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
   skip_final_snapshot  = true
   publicly_accessible  = false
   storage_encrypted    = var.storage_encrypted
   kms_key_id           = var.kms_key_id
+
+  # Enable SSL/TLS
+  ca_cert_identifier    = "rds-ca-rsa2048-g1"
 
   tags = {
     Name    = "ecommerce-db"
@@ -113,4 +134,14 @@ output "db_name" {
 output "rds_security_group_id" {
   value = aws_security_group.rds_sg.id
   description = "The ID of the RDS security group"
+}
+
+output "rds_ssl_enabled" {
+  value       = true
+  description = "Indicates that SSL is enabled for RDS connections"
+}
+
+output "rds_ca_cert_identifier" {
+  value       = aws_db_instance.ecommerce_db.ca_cert_identifier
+  description = "The CA certificate identifier used for RDS SSL connections"
 }

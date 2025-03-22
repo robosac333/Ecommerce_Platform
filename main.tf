@@ -202,3 +202,24 @@ output "waf_blocked_requests_alarm_arn" {
   value       = module.waf.blocked_requests_alarm_arn
   description = "ARN of the CloudWatch Alarm for blocked requests"
 }
+
+# SSL/TLS related outputs
+output "https_listener_arn" {
+  value       = module.loadbalancer.https_listener_arn
+  description = "ARN of the HTTPS listener"
+}
+
+output "acm_certificate_arn" {
+  value       = module.loadbalancer.acm_certificate_arn
+  description = "ARN of the ACM certificate used for HTTPS"
+}
+
+output "rds_ssl_enabled" {
+  value       = module.rds.rds_ssl_enabled
+  description = "Indicates that SSL is enabled for RDS connections"
+}
+
+output "rds_ca_cert_identifier" {
+  value       = module.rds.rds_ca_cert_identifier
+  description = "The CA certificate identifier used for RDS SSL connections"
+}

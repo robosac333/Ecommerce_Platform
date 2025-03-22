@@ -32,3 +32,13 @@ output "alb_arn" {
   value       = aws_lb.ecommerce_lb.arn
   description = "ARN of the application load balancer"
 }
+
+output "https_listener_arn" {
+  value       = aws_lb_listener.https.arn
+  description = "ARN of the HTTPS listener"
+}
+
+output "acm_certificate_arn" {
+  value       = aws_acm_certificate.self_signed_cert.arn
+  description = "ARN of the ACM certificate used for HTTPS"
+}

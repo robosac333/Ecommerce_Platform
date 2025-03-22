@@ -13,6 +13,7 @@ This project deploys a scalable ecommerce platform on AWS using Terraform with t
 - **Auto Scaling**: Auto Scaling Group to handle varying loads
 - **CloudWatch**: Alarms to trigger scaling events based on metrics
 - **WAF**: Web Application Firewall to protect against SQL Injection and XSS attacks
+- **SSL/TLS**: HTTPS for secure client-server communication and SSL for database connections
 
 ## Modules
 
@@ -52,6 +53,15 @@ Configures AWS Web Application Firewall (WAF) to protect the application from co
 - Logging of blocked requests to CloudWatch Logs
 - CloudWatch alarms for monitoring blocked requests
 
+### SSL/TLS Encryption
+
+Implements secure data transmission using:
+
+- **HTTPS**: Self-signed SSL/TLS certificate via AWS Certificate Manager for HTTPS communication
+- **HTTP to HTTPS Redirection**: Automatically redirects HTTP traffic to HTTPS
+- **RDS SSL**: Enforces SSL connections between the application and the MySQL database
+- **Parameter Group**: Custom DB parameter group with `require_secure_transport=ON`
+
 ## Auto Scaling
 
 The platform automatically scales based on the following metrics:
@@ -85,3 +95,7 @@ A CloudWatch dashboard is also created to monitor these metrics.
 - `waf_web_acl_arn`: ARN of the WAF WebACL
 - `waf_log_group_name`: Name of the CloudWatch Log Group for WAF logs
 - `waf_blocked_requests_alarm_arn`: ARN of the CloudWatch Alarm for blocked requests
+- `https_listener_arn`: ARN of the HTTPS listener
+- `acm_certificate_arn`: ARN of the ACM certificate used for HTTPS
+- `rds_ssl_enabled`: Indicates that SSL is enabled for RDS connections
+- `rds_ca_cert_identifier`: The CA certificate identifier used for RDS SSL connections
