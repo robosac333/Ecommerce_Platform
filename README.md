@@ -12,6 +12,7 @@ This project deploys a scalable ecommerce platform on AWS using Terraform with t
 - **Load Balancer**: Application Load Balancer for distributing traffic
 - **Auto Scaling**: Auto Scaling Group to handle varying loads
 - **CloudWatch**: Alarms to trigger scaling events based on metrics
+- **WAF**: Web Application Firewall to protect against SQL Injection and XSS attacks
 
 ## Modules
 
@@ -39,6 +40,17 @@ Sets up CloudWatch alarms to trigger scaling events based on various metrics:
 - Network traffic (in and out)
 - Request count
 - Response time
+
+### WAF
+
+Configures AWS Web Application Firewall (WAF) to protect the application from common web exploits:
+
+- SQL Injection protection using AWS Managed Rules
+- Cross-Site Scripting (XSS) protection using AWS Managed Rules
+- Rate-based rules to prevent DDoS attacks
+- Custom rules to block known bad bots
+- Logging of blocked requests to CloudWatch Logs
+- CloudWatch alarms for monitoring blocked requests
 
 ## Auto Scaling
 
@@ -69,3 +81,7 @@ A CloudWatch dashboard is also created to monitor these metrics.
 - `low_cpu_alarm_arn`: ARN of the low CPU utilization alarm
 - `autoscaling_group_name`: Name of the Auto Scaling Group
 - `cloudwatch_dashboard_arn`: ARN of the CloudWatch dashboard
+- `waf_web_acl_id`: ID of the WAF WebACL
+- `waf_web_acl_arn`: ARN of the WAF WebACL
+- `waf_log_group_name`: Name of the CloudWatch Log Group for WAF logs
+- `waf_blocked_requests_alarm_arn`: ARN of the CloudWatch Alarm for blocked requests
