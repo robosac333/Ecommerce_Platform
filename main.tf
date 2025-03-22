@@ -54,7 +54,7 @@ module "rds" {
   kms_key_id        = var.kms_key_id
 }
 
-# Add the loadbalancer module
+# This module sets up an Application Load Balancer (ALB) for distributing traffic
 module "loadbalancer" {
   source                    = "./loadbalancer"
   vpc_id                    = module.networking.ecommerce_vpc_id
@@ -63,7 +63,7 @@ module "loadbalancer" {
   instance_id               = module.ec2.instance_id
 }
 
-# Add the CloudWatch module for scaling alarms
+# This module configures monitoring and auto-scaling alarms for the application
 module "cloudwatch" {
   source                  = "./cloudwatch"
   prefix                  = "ecommerce"
@@ -91,7 +91,34 @@ module "cloudwatch" {
 
   # Create a dashboard
   create_dashboard        = true
+  
+  # WAF dashboard settings
+  waf_enabled             = true
+  waf_web_acl_name        = "ecommerce-waf-acl"
 
+  tags = {
+    Project = "ecommerce-app"
+  }
+}
+
+# This module sets up Web Application Firewall rules and protection
+module "waf" {
+  source      = "./waf"
+  alb_arn     = module.loadbalancer.alb_arn
+  aws_region  = "us-east-1"
+  
+  # Rate limiting settings
+  rate_limit  = 2000
+  
+  # Logging settings
+  log_retention_days = 30
+  
+  # Alarm settings
+  blocked_requests_threshold = 100
+  
+  # Optional: Add SNS topic ARNs for alarm notifications
+  # alarm_actions = ["arn:aws:sns:us-east-1:123456789012:waf-alerts"]
+  
   tags = {
     Project = "ecommerce-app"
   }
@@ -153,4 +180,25 @@ output "autoscaling_group_name" {
 output "cloudwatch_dashboard_arn" {
   value       = module.cloudwatch.dashboard_arn
   description = "ARN of the CloudWatch dashboard"
+}
+
+# Add WAF outputs
+output "waf_web_acl_id" {
+  value       = module.waf.web_acl_id
+  description = "ID of the WAF WebACL"
+}
+
+output "waf_web_acl_arn" {
+  value       = module.waf.web_acl_arn
+  description = "ARN of the WAF WebACL"
+}
+
+output "waf_log_group_name" {
+  value       = module.waf.log_group_name
+  description = "Name of the CloudWatch Log Group for WAF logs"
+}
+
+output "waf_blocked_requests_alarm_arn" {
+  value       = module.waf.blocked_requests_alarm_arn
+  description = "ARN of the CloudWatch Alarm for blocked requests"
 }
